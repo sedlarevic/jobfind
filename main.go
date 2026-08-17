@@ -1,18 +1,21 @@
 package main
 
 import (
+	"fmt"
+	"jobfind/crawler"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
-func crawl(w http.ResponseWriter, r *http.Request) {
-
-}
-
 func main() {
 
 	router := mux.NewRouter().StrictSlash(true)
+	crawler := crawler.NewCrawler()
 
-	router.HandleFunc("/", crawl)
+	router.HandleFunc("/crawl", crawler.CrawlAllSites).Methods("GET")
+
+	fmt.Println("Server starting on port 8081...")
+	log.Fatal(http.ListenAndServe(":8081", router))
 }
