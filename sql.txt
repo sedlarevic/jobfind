@@ -1,0 +1,15 @@
+// Create a table Job postings with all needed columns.
+
+create table job_postings (
+ id bigint generated always as identity primary key,
+ 
+ company_name TEXT not NULL,
+ title TEXT not NULL,
+ url TEXT unique not NULL,
+ description TEXT not NULL,
+ 
+ first_seen timestamptz not null default now(),
+ last_seen timestamptz not null default now(),
+ active boolean not null default true
+);
+

@@ -1,52 +1,30 @@
 package crawler
 
 import (
-	"bytes"
 	"fmt"
-	"log"
+	"jobfind/model"
+	"jobfind/service"
 	"net/http"
-	"strings"
-
-	"github.com/gocolly/colly/v2"
 )
 
-type Company struct {
-	Name        string       `json:"name"`
-	JobPostings []JobPosting `json:"jobpostings"`
-}
+// TODO: Save crawl result to Postgres. New job postings should be added,
+// older should just update last_seen column.
 
-func (c *Company) String() string {
-	var out bytes.Buffer
+// TODO: Every morning at 9.00am crawl all sites to check if there is a difference.
+// If yes, alter the table, send notification and display the new result.
 
-	out.WriteString(c.Name)
-	out.WriteString("\n\n")
-	for i, job := range c.JobPostings {
-		if i > 0 {
-			out.WriteString("\n\n")
-		}
-		out.WriteString(job.String() + "\n")
-	}
-	return out.String()
-}
+// TODO: Load CV PDF (https://github.com/ledongthuc/pdf)
 
-type JobPosting struct {
-	URL  string `json:"url"`
-	Text string `json:"text"`
-}
-
-func (jp *JobPosting) String() string {
-	return jp.URL + "\n\n" + jp.Text
-}
-
-type siteCrawlerFunc func() ([]JobPosting, error)
+type siteCrawlerFunc func() ([]model.JobPosting, error)
 
 type Crawler struct {
-	registry map[string]siteCrawlerFunc
+	// NOTE: company name: crawler function
+	companyRegistry map[string]siteCrawlerFunc
 }
 
 func NewCrawler() *Crawler {
 	c := &Crawler{}
-	c.registry = map[string]siteCrawlerFunc{
+	c.companyRegistry = map[string]siteCrawlerFunc{
 		"NORDEUS": crawlNordeus,
 		// Add new companies and their functions
 	}
@@ -58,64 +36,30 @@ func (c *Crawler) CrawlAllSites(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 
-	for companyName, crawlerFunc := range c.registry {
+	jobPostings := []model.JobPosting{}
 
-		jobPostings, err := crawlerFunc()
+	for companyName, crawlerFunc := range c.companyRegistry {
 
-		company := &Company{Name: companyName, JobPostings: jobPostings}
+		companyJobPostings, err := crawlerFunc()
+
 		if err != nil {
 			fmt.Fprintf(w, "Error crawling %s: %v\n", companyName, err)
 			continue
 		}
-		fmt.Fprint(w, company.String())
+
+		fmt.Fprintf(w, "Job postings for company: %s\n\n", companyName)
+
+		for _, companyJobPosting := range companyJobPostings {
+			fmt.Fprintln(w, companyJobPosting.String()+"\n")
+			jobPostings = append(jobPostings, companyJobPosting)
+		}
 
 	}
-}
 
-func crawlNordeus() ([]JobPosting, error) {
-	var jobPostings []JobPosting
-	var siteToVisit = "https://nordeus.com/open-positions/"
-	// On every a element which has href attribute call callback
-
-	collector := colly.NewCollector(
-		colly.AllowedDomains("www.nordeus.com", "nordeus.com"),
-		colly.MaxDepth(1),
-	)
-
-	collector.OnHTML("a[href]", func(e *colly.HTMLElement) {
-		link := e.Attr("href")
-		absoluteURL := e.Request.AbsoluteURL(link)
-
-		if !strings.Contains(absoluteURL, "/open-positions") || strings.Contains(absoluteURL, "/early_talent_program") || absoluteURL == siteToVisit {
-			return
-		}
-		// Print link
-		log.Printf("Link found: %q -> %s\n", strings.TrimSpace(e.Text), absoluteURL)
-		// Visit link found on page
-		collector.Visit(absoluteURL)
-	})
-
-	collector.OnHTML(".text-content", func(e *colly.HTMLElement) {
-		jobPostings = append(jobPostings, JobPosting{
-			URL:  e.Request.URL.String(),
-			Text: strings.TrimSpace(e.Text),
-		})
-	})
-
-	// Before making a request print "Visiting ..."
-	collector.OnRequest(func(r *colly.Request) {
-		fmt.Println("Visiting", r.URL.String())
-	})
-
-	collector.OnError(func(_ *colly.Response, err error) {
-		log.Println("Something went wrong:", err)
-	})
-
-	err := collector.Visit(siteToVisit)
+	err := service.SyncJobPostings(jobPostings)
 
 	if err != nil {
-		return nil, err
+		fmt.Fprintf(w, "error syncing job postings")
 	}
 
-	return jobPostings, nil
 }
