@@ -7,10 +7,10 @@ import (
 )
 
 type JobPostingService struct {
-	repository *repository.PostgresRepository
+	repository repository.JobPostingRepository
 }
 
-func NewJobPostingService(repo *repository.PostgresRepository) *JobPostingService {
+func NewJobPostingService(repo repository.JobPostingRepository) *JobPostingService {
 	return &JobPostingService{
 		repository: repo,
 	}

@@ -1,6 +1,8 @@
 package crawler
 
 import (
+	"errors"
+	"fmt"
 	"jobfind/model"
 	"log"
 )
@@ -30,27 +32,30 @@ func NewCrawler() *Crawler {
 }
 
 func (c *Crawler) CrawlAll() ([]model.JobPosting, error) {
-
+	/* NOTE: CrawlAll is best-effort.
+		Function continues to run if some company crawl error happens.
+	 	It returns all succesful crawl results, as well as errors that happened throughout all the crawls.
+	*/
+	var errs []error
 	var allJobs []model.JobPosting
+
 	for companyName, crawlerFunc := range c.companyRegistry {
 
 		crawledJobs, err := crawlerFunc()
 
 		if err != nil {
-			// TODO: Better handling of errors.
-
-			log.Printf("Error crawling %s: %v\n", companyName, err)
+			crawlErr := fmt.Errorf(
+				"crawl %s: %w",
+				companyName,
+				err,
+			)
+			log.Println(crawlErr)
+			errs = append(errs, crawlErr)
 			continue
-		}
-
-		log.Printf("Job postings for company: %s\n\n", companyName)
-
-		for _, job := range crawledJobs {
-			log.Println(job.String() + "\n")
 		}
 
 		allJobs = append(allJobs, crawledJobs...)
 	}
 
-	return allJobs, nil
+	return allJobs, errors.Join(errs...)
 }

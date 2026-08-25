@@ -4,7 +4,6 @@ import (
 	"context"
 	"jobfind/crawler"
 	"jobfind/model"
-	"log"
 )
 
 type CrawlService struct {
@@ -19,20 +18,14 @@ func NewCrawlService(crawler *crawler.Crawler, jps *JobPostingService) *CrawlSer
 	}
 }
 
-func (cs *CrawlService) CrawlAll() ([]model.JobPosting, error) {
-	crawledJobs, err := cs.crawler.CrawlAll()
+func (cs *CrawlService) CrawlAll(ctx context.Context) ([]model.JobPosting, error) {
+	crawledJobs, crawlErr := cs.crawler.CrawlAll()
 
-	if err != nil {
-		log.Printf("Error occured during crawling: %v", err)
-		return nil, err
+	syncErr := cs.jobPostingService.Sync(ctx, crawledJobs)
+
+	if syncErr != nil {
+		return nil, syncErr
 	}
 
-	err = cs.jobPostingService.Sync(context.Background(), crawledJobs)
-
-	if err != nil {
-		log.Printf("Error occured during job posting synchronizing: %v", err)
-		return nil, err
-	}
-
-	return crawledJobs, nil
+	return crawledJobs, crawlErr
 }

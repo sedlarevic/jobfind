@@ -4,7 +4,7 @@ import (
 	"context"
 	"jobfind/model"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type JobPostingRepository interface {
@@ -14,12 +14,12 @@ type JobPostingRepository interface {
 }
 
 type PostgresRepository struct {
-	conn *pgx.Conn
+	pool *pgxpool.Pool
 }
 
-func NewPostgresRepository(conn *pgx.Conn) *PostgresRepository {
+func NewPostgresRepository(pool *pgxpool.Pool) *PostgresRepository {
 	return &PostgresRepository{
-		conn: conn,
+		pool: pool,
 	}
 }
 

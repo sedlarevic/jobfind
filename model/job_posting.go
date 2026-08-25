@@ -5,7 +5,7 @@ import (
 )
 
 type JobPosting struct {
-	Id          int64     `json:"id"`
+	ID          int64     `json:"id"`
 	CompanyName string    `json:"companyName"`
 	Title       string    `json:"title"`
 	URL         string    `json:"url"`

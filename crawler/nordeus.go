@@ -29,7 +29,9 @@ func crawlNordeus() ([]model.JobPosting, error) {
 
 		log.Printf("Link found: %q -> %s\n", strings.TrimSpace(e.Text), absoluteURL)
 
-		collector.Visit(absoluteURL)
+		if err := e.Request.Visit(absoluteURL); err != nil {
+			log.Printf("failed visiting %s: %v", absoluteURL, err)
+		}
 	})
 
 	collector.OnHTML(".main", func(e *colly.HTMLElement) {
