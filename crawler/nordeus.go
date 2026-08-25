@@ -42,7 +42,6 @@ func crawlNordeus() ([]model.JobPosting, error) {
 			Description: strings.TrimSpace(e.ChildText(".text-content")),
 			CompanyName: "NORDEUS",
 			Active:      true,
-			FirstSeen:   time.Now(),
 			LastSeen:    time.Now(),
 		})
 	})

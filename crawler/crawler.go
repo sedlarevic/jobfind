@@ -1,10 +1,8 @@
 package crawler
 
 import (
-	"fmt"
 	"jobfind/model"
-	"jobfind/service"
-	"net/http"
+	"log"
 )
 
 // TODO: Save crawl result to Postgres. New job postings should be added,
@@ -31,35 +29,28 @@ func NewCrawler() *Crawler {
 	return c
 }
 
-func (c *Crawler) CrawlAllSites(w http.ResponseWriter, r *http.Request) {
+func (c *Crawler) CrawlAll() ([]model.JobPosting, error) {
 
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-
-	jobPostings := []model.JobPosting{}
-
+	var allJobs []model.JobPosting
 	for companyName, crawlerFunc := range c.companyRegistry {
 
-		companyJobPostings, err := crawlerFunc()
+		crawledJobs, err := crawlerFunc()
 
 		if err != nil {
-			fmt.Fprintf(w, "Error crawling %s: %v\n", companyName, err)
+			// TODO: Better handling of errors.
+
+			log.Printf("Error crawling %s: %v\n", companyName, err)
 			continue
 		}
 
-		fmt.Fprintf(w, "Job postings for company: %s\n\n", companyName)
+		log.Printf("Job postings for company: %s\n\n", companyName)
 
-		for _, companyJobPosting := range companyJobPostings {
-			fmt.Fprintln(w, companyJobPosting.String()+"\n")
-			jobPostings = append(jobPostings, companyJobPosting)
+		for _, job := range crawledJobs {
+			log.Println(job.String() + "\n")
 		}
 
+		allJobs = append(allJobs, crawledJobs...)
 	}
 
-	err := service.SyncJobPostings(jobPostings)
-
-	if err != nil {
-		fmt.Fprintf(w, "error syncing job postings")
-	}
-
+	return allJobs, nil
 }

@@ -4,17 +4,17 @@ import (
 	"context"
 	"fmt"
 	"jobfind/crawler"
+	"jobfind/handler"
+	"jobfind/repository"
+	"jobfind/service"
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/gorilla/mux"
 
 	"github.com/jackc/pgx/v5"
 )
 
 func main() {
-
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
 
 	//starting db
@@ -25,12 +25,15 @@ func main() {
 	}
 	defer conn.Close(context.Background())
 
-	//starting crawler
-	router := mux.NewRouter().StrictSlash(true)
-	crawler := crawler.NewCrawler()
+	repo := repository.NewPostgresRepository(conn)
 
-	router.HandleFunc("/crawl", crawler.CrawlAllSites).Methods("GET")
+	jobPostingService := service.NewJobPostingService(repo)
+	crawlService := service.NewCrawlService(crawler.NewCrawler(), jobPostingService)
+
+	handler := handler.NewHTTPHandler(jobPostingService, crawlService)
+
+	mux := handler.SetupRoutes()
 
 	fmt.Println("Server starting on port 8081...")
-	log.Fatal(http.ListenAndServe(":8081", router))
+	log.Fatal(http.ListenAndServe(":8081", mux))
 }
