@@ -3,7 +3,8 @@ package crawler
 import (
 	"jobfind/crawler/companies"
 	"jobfind/model"
-	"log"
+	"log/slog"
+	"time"
 )
 
 type siteCrawlerFunc func() ([]model.JobPosting, error)
@@ -34,9 +35,15 @@ func (c *Crawler) CrawlAll() []CompanyCrawlResult {
 	Each company result contains the successfully crawled job postings
 	and the error, if one occurred.
 	*/
+
 	var allResults []CompanyCrawlResult
 
+	start := time.Now()
+
+	slog.Info("starting to crawl all company sites")
+
 	for companyName, crawlerFunc := range c.companyRegistry {
+		companyStart := time.Now()
 
 		crawledJobs, err := crawlerFunc()
 
@@ -45,8 +52,24 @@ func (c *Crawler) CrawlAll() []CompanyCrawlResult {
 			JobPostings: crawledJobs,
 			Err:         err,
 		})
-		log.Printf("crawled job postings of company:\t%v\nnumber of job postings:\t%d\nerrors:%v\n", companyName, len(crawledJobs), err)
+
+		if err != nil {
+			slog.Warn("company crawl completed with errors",
+				"company", companyName,
+				"jobs", len(crawledJobs),
+				"duration", time.Since(companyStart),
+				"error", err)
+			continue
+		}
+
+		slog.Debug("company crawl completed", "company", companyName, "jobs", len(crawledJobs), "duration", time.Since(companyStart))
 	}
+
+	slog.Info(
+		"finished crawling all company sites",
+		"companies", len(allResults),
+		"duration", time.Since(start),
+	)
 
 	return allResults
 }

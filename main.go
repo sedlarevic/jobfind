@@ -8,6 +8,7 @@ import (
 	"jobfind/repository"
 	"jobfind/service"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
@@ -16,6 +17,12 @@ import (
 
 func main() {
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
+
+	slog.SetDefault(logger)
 
 	// init db
 	pool, err := pgxpool.New(

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"jobfind/model"
-	"log"
+	"log/slog"
 	"strings"
 
 	"github.com/gocolly/colly/v2"
@@ -29,9 +29,10 @@ func CrawlNordeus() ([]model.JobPosting, error) {
 			return
 		}
 
-		log.Printf("Link found: %q -> %s\n", strings.TrimSpace(e.Text), absoluteURL)
+		slog.Debug("found job link", "url", absoluteURL)
+
 		if err := e.Request.Visit(absoluteURL); err != nil {
-			log.Printf("could not visit %s: %v", absoluteURL, err)
+			slog.Debug("visit call returned error", "url", absoluteURL, "error", err)
 		}
 	})
 
@@ -40,20 +41,29 @@ func CrawlNordeus() ([]model.JobPosting, error) {
 		if e.Request.URL.String() == siteToVisit {
 			return
 		}
-		jobPostings = append(jobPostings, model.JobPosting{
+
+		job := model.JobPosting{
 			Title:       strings.TrimSpace(e.ChildText("h1")),
 			URL:         e.Request.URL.String(),
 			Description: strings.TrimSpace(e.ChildText(".text-content")),
 			CompanyName: "NORDEUS",
-		})
+		}
+
+		jobPostings = append(jobPostings, job)
+
+		slog.Debug("job page crawled", "url", job.URL)
 	})
 
 	collector.OnRequest(func(r *colly.Request) {
-		fmt.Println("Visiting", r.URL.String())
+		slog.Debug("visiting page", "url", r.URL.String())
 	})
 
 	collector.OnError(func(r *colly.Response, err error) {
-		errs = append(errs, fmt.Errorf("request %s failed: %w", r.Request.URL, err))
+		crawlErr := fmt.Errorf("request %s failed: %w", r.Request.URL, err)
+
+		errs = append(errs, crawlErr)
+
+		slog.Warn("request failed", "url", r.Request.URL.String(), "failed", err)
 	})
 
 	err := collector.Visit(siteToVisit)

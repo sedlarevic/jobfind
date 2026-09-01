@@ -2,8 +2,9 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"jobfind/model"
-	"log"
+	"log/slog"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -24,13 +25,11 @@ func NewPostgresRepository(pool *pgxpool.Pool) *PostgresRepository {
 }
 
 func (pr *PostgresRepository) RefreshCompany(ctx context.Context, company string, jobs []model.JobPosting, deactivateMissing bool) (*model.RefreshResult, error) {
-	log.Printf("in Repository.RefreshCompany for company: %v\n", company)
 	res := &model.RefreshResult{}
 
 	tx, err := pr.pool.Begin(ctx)
 	if err != nil {
-		log.Printf("couldnt create transaction\n")
-		return nil, err
+		return nil, fmt.Errorf("begin refresh transaction for %s: %w", company, err)
 	}
 
 	defer tx.Rollback(ctx)
@@ -61,9 +60,7 @@ func (pr *PostgresRepository) RefreshCompany(ctx context.Context, company string
 			company, job.Title, job.URL, job.Description).Scan(&inserted)
 
 		if err != nil {
-
-			log.Printf("error after executing upsert query, %v", err)
-			return nil, err
+			return nil, fmt.Errorf("upsert job %q for company %s: %w", job.Title, company, err)
 		}
 
 		// NOTE: Saving upserting result
@@ -73,7 +70,7 @@ func (pr *PostgresRepository) RefreshCompany(ctx context.Context, company string
 			res.Updated++
 		}
 		res.Crawled++
-		log.Printf("finished upserting a job, inserted:%v\n", inserted)
+
 	}
 
 	// NOTE: Expired job postings deactivation
@@ -82,29 +79,34 @@ func (pr *PostgresRepository) RefreshCompany(ctx context.Context, company string
 		WHERE company_name = $1 AND active = true AND NOT (url = ANY($2));`, company, urls)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("deactivate missing jobs for company %s: %w", company, err)
 		}
 		// NOTE: Saving expired job posting deactivation results
 		res.Deactivated = int32(tag.RowsAffected())
 
-		log.Printf("deactivating expired jobs, deactivated:%v\n", res.Deactivated)
+		slog.Debug(
+			"missing jobs deactivated",
+			"company", company,
+			"deactivated", res.Deactivated,
+		)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		log.Printf("couldnt commit for some reason, %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("commit refresh transaction for company %s: %w", company, err)
 	}
-	log.Printf("successful refresh, result: %v\n", res)
+
 	return res, nil
 }
 
 func (pr *PostgresRepository) GetAllActive(ctx context.Context) ([]model.JobPosting, error) {
 
-	rows, err := pr.pool.Query(ctx, "SELECT * FROM job_postings WHERE active = true;")
+	rows, err := pr.pool.Query(ctx, "SELECT id, company_name, title, url, description, first_seen, last_seen, active FROM job_postings WHERE active = true;")
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("query active job postings: %w", err)
 	}
+
+	defer rows.Close()
 
 	var jobs []model.JobPosting
 
@@ -121,10 +123,13 @@ func (pr *PostgresRepository) GetAllActive(ctx context.Context) ([]model.JobPost
 			&job.LastSeen,
 			&job.Active,
 		); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("scan active job posting: %w", err)
 		}
-
 		jobs = append(jobs, job)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate active job postings: %w", err)
 	}
 
 	return jobs, nil
