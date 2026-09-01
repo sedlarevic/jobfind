@@ -1,6 +1,7 @@
 package crawler
 
 import (
+	"jobfind/crawler/companies"
 	"jobfind/model"
 	"log"
 )
@@ -21,7 +22,7 @@ type Crawler struct {
 func NewCrawler() *Crawler {
 	c := &Crawler{}
 	c.companyRegistry = map[string]siteCrawlerFunc{
-		"NORDEUS": crawlNordeus,
+		"NORDEUS": companies.CrawlNordeus,
 		// Add new companies and their functions
 	}
 	return c

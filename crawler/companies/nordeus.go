@@ -1,4 +1,4 @@
-package crawler
+package companies
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-func crawlNordeus() ([]model.JobPosting, error) {
+func CrawlNordeus() ([]model.JobPosting, error) {
 	var jobPostings []model.JobPosting
 	var siteToVisit = "https://nordeus.com/open-positions/"
 	var errs []error
