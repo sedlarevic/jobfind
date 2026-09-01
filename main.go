@@ -17,7 +17,7 @@ import (
 func main() {
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
 
-	//starting db
+	// init db
 	pool, err := pgxpool.New(
 		context.Background(),
 		os.Getenv("DATABASE_URL"),
@@ -28,13 +28,17 @@ func main() {
 	}
 	defer pool.Close()
 
+	// init repository
 	repo := repository.NewPostgresRepository(pool)
 
+	// init services
 	jobPostingService := service.NewJobPostingService(repo)
 	crawlService := service.NewCrawlService(crawler.NewCrawler(), jobPostingService)
 
+	// init handler
 	httpHandler := handler.NewHTTPHandler(jobPostingService, crawlService)
 
+	// setup routes
 	mux := httpHandler.SetupRoutes()
 
 	fmt.Println("Server starting on port 8081...")

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"jobfind/service"
+	"log"
 	"net/http"
 )
 
@@ -17,10 +18,15 @@ func NewHTTPHandler(jps *service.JobPostingService, cs *service.CrawlService) *H
 	}
 }
 
-func (h *HTTPHandler) CrawlAll(w http.ResponseWriter, r *http.Request) {
-}
-func (h *HTTPHandler) GetAllActive(w http.ResponseWriter, r *http.Request) {
-}
-func (h *HTTPHandler) MarkInactive(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPHandler) Refresh(w http.ResponseWriter, r *http.Request) {
+	result, _ := h.crawlService.RefreshJobs(r.Context())
+
+	log.Printf("Result: %v", result)
+
 }
 
+func (h *HTTPHandler) GetAllActive(w http.ResponseWriter, r *http.Request) {
+	result, _ := h.jobPostingService.GetAllActive(r.Context())
+
+	log.Printf("Result: %v", result)
+}

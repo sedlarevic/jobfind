@@ -6,9 +6,8 @@ func (h *HTTPHandler) SetupRoutes() *http.ServeMux {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /crawl", h.CrawlAll)
+	mux.HandleFunc("POST /jobs/refresh", h.Refresh)
 	mux.HandleFunc("GET /jobs/active", h.GetAllActive)
-	mux.HandleFunc("PATCH /jobs/{id}/inactive", h.MarkInactive)
 
 	return mux
 }

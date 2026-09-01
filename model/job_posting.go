@@ -11,7 +11,7 @@ type JobPosting struct {
 	URL         string    `json:"url"`
 	Description string    `json:"description"`
 	FirstSeen   time.Time `json:"firstSeen"`
-	LastSeen    time.Time `json:"LastSeen"`
+	LastSeen    time.Time `json:"lastSeen"`
 	Active      bool      `json:"active"`
 }
 

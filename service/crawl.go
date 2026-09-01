@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"errors"
 	"jobfind/crawler"
 	"jobfind/model"
+	"log"
 )
 
 type CrawlService struct {
@@ -18,14 +20,21 @@ func NewCrawlService(crawler *crawler.Crawler, jps *JobPostingService) *CrawlSer
 	}
 }
 
-func (cs *CrawlService) CrawlAll(ctx context.Context) ([]model.JobPosting, error) {
-	crawledJobs, crawlErr := cs.crawler.CrawlAll()
+func (cs *CrawlService) RefreshJobs(ctx context.Context) (*model.RefreshResult, error) {
+	perCompanyResult := cs.crawler.CrawlAll()
 
-	syncErr := cs.jobPostingService.Sync(ctx, crawledJobs)
-
-	if syncErr != nil {
-		return nil, syncErr
+	if len(perCompanyResult) == 0 {
+		log.Printf("no company has been crawled! Returning error\n")
+		return nil, errors.New("No company site has been crawled.")
 	}
 
-	return crawledJobs, crawlErr
+	refreshResult, err := cs.jobPostingService.Refresh(ctx, perCompanyResult)
+
+	if err != nil {
+
+		log.Printf("error during Refresh in jps.Refresh\n")
+		return nil, err
+	}
+	log.Printf("returning refreshresult\n")
+	return refreshResult, nil
 }
