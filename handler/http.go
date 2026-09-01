@@ -61,3 +61,25 @@ func (h *HTTPHandler) GetAllActive(w http.ResponseWriter, r *http.Request) {
 
 	slog.Info("get active jobs request completed", "jobs", len(jobs))
 }
+
+func (h *HTTPHandler) CrawlCompany(w http.ResponseWriter, r *http.Request) {
+	company := r.PathValue("company")
+
+	result, err := h.crawlService.CrawlCompany(r.Context(), company)
+
+	if err != nil {
+		slog.Error("company crawl failed", "error", err)
+
+		http.Error(w, "company crawl failed", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(result); err != nil {
+		slog.Error("failed to encode crawled company jobs", "error", err)
+		return
+	}
+
+	slog.Info("company crawl completed", "company", company, "jobs", len(result.JobPostings))
+}

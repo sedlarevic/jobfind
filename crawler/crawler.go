@@ -1,6 +1,7 @@
 package crawler
 
 import (
+	"fmt"
 	"jobfind/crawler/companies"
 	"jobfind/model"
 	"log/slog"
@@ -72,4 +73,18 @@ func (c *Crawler) CrawlAll() []CompanyCrawlResult {
 	)
 
 	return allResults
+}
+
+func (c *Crawler) CrawlCompany(company string) (*CompanyCrawlResult, error) {
+	crawlerFunc, ok := c.companyRegistry[company]
+	if !ok {
+		return &CompanyCrawlResult{}, fmt.Errorf("crawler for company %s not found", company)
+	}
+	jobs, err := crawlerFunc()
+
+	return &CompanyCrawlResult{
+		Company:     company,
+		JobPostings: jobs,
+		Err:         err,
+	}, nil
 }
