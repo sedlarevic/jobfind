@@ -83,7 +83,6 @@ func (c *Crawler) CrawlCompany(company string) (*CompanyCrawlResult, error) {
 	jobs, err := crawlerFunc()
 
 	if err != nil {
-		slog.Error("error during company crawl", "error", err)
 		return nil, err
 	}
 
