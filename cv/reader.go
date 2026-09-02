@@ -16,13 +16,12 @@ func NewCVReader() *Reader {
 }
 
 func standardizeWhitespace(s string) string {
-
 	s = strings.ReplaceAll(s, "\n", "")
+
 	return strings.Join(strings.Fields(s), " ")
 }
 
 func normalizeText(s string) string {
-
 	s = strings.ToLower(s)
 
 	return s
