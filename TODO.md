@@ -1,5 +1,6 @@
-// TODO: Every morning at 9.00am crawl all sites to check if there is a difference.
-// If yes, alter the table, send notification and display the new result.
-
-// TODO: Load CV PDF (https://github.com/ledongthuc/pdf)
+TODO:
+ - Load CV PDF (https://github.com/ledongthuc/pdf)
+ - Make a CLI tool to handle the app
+ - Every morning at 9.00am refresh all sites.
+ - Make results more cohesive, transform text to show only important information
 

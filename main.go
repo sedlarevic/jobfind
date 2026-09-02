@@ -2,12 +2,11 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"jobfind/crawler"
+	"jobfind/cv"
 	"jobfind/handler"
 	"jobfind/repository"
 	"jobfind/service"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -24,16 +23,26 @@ func main() {
 
 	slog.SetDefault(logger)
 
+	ctx := context.Background()
+
 	// init db
 	pool, err := pgxpool.New(
-		context.Background(),
+		ctx,
 		os.Getenv("DATABASE_URL"),
 	)
+
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		slog.Error("database initialization failed", "error", err)
 		os.Exit(1)
 	}
 	defer pool.Close()
+
+	if err := pool.Ping(ctx); err != nil {
+		slog.Error("database connection failed", "error", err)
+		os.Exit(1)
+	}
+
+	slog.Info("database connection established")
 
 	// init repository
 	repo := repository.NewPostgresRepository(pool)
@@ -41,13 +50,18 @@ func main() {
 	// init services
 	jobPostingService := service.NewJobPostingService(repo)
 	crawlService := service.NewCrawlService(crawler.NewCrawler(), jobPostingService)
+	cvService := service.NewCVService(cv.NewCVReader())
 
 	// init handler
-	httpHandler := handler.NewHTTPHandler(jobPostingService, crawlService)
+	httpHandler := handler.NewHTTPHandler(jobPostingService, crawlService, cvService)
 
 	// setup routes
 	mux := httpHandler.SetupRoutes()
 
-	fmt.Println("Server starting on port 8081...")
-	log.Fatal(http.ListenAndServe(":8081", mux))
+	slog.Info("server starting", "port", 8081)
+
+	if err := http.ListenAndServe(":8081", mux); err != nil {
+		slog.Error("server stopped", "error", err)
+		os.Exit(1)
+	}
 }

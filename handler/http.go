@@ -2,20 +2,24 @@ package handler
 
 import (
 	"encoding/json"
+	"io"
 	"jobfind/service"
 	"log/slog"
 	"net/http"
+	"os"
 )
 
 type HTTPHandler struct {
 	jobPostingService *service.JobPostingService
 	crawlService      *service.CrawlService
+	cvService         *service.CVService
 }
 
-func NewHTTPHandler(jps *service.JobPostingService, cs *service.CrawlService) *HTTPHandler {
+func NewHTTPHandler(jps *service.JobPostingService, cs *service.CrawlService, cvs *service.CVService) *HTTPHandler {
 	return &HTTPHandler{
 		jobPostingService: jps,
 		crawlService:      cs,
+		cvService:         cvs,
 	}
 }
 
@@ -82,4 +86,59 @@ func (h *HTTPHandler) CrawlCompany(w http.ResponseWriter, r *http.Request) {
 	}
 
 	slog.Info("company crawl completed", "company", company, "jobs", len(result.JobPostings))
+}
+
+func (h *HTTPHandler) ExtractCV(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, 10<<20) // 10 MB
+
+	// NOTE: REQUEST FILE
+	requestFile, header, err := r.FormFile("cv")
+
+	if err != nil {
+		slog.Error("failed to capture uploaded cv", "error", err)
+		http.Error(w, "failed to procses cv", http.StatusBadRequest)
+		return
+	}
+	defer requestFile.Close()
+
+	// NOTE: TEMPORARY FILE
+	tempFile, err := os.CreateTemp("", "jobfind-cv-*.pdf")
+
+	if err != nil {
+		slog.Error("failed to create temporary file", "error", err)
+		http.Error(w, "failed to process cv", http.StatusBadRequest)
+		return
+	}
+
+	tempPath := tempFile.Name()
+	defer os.Remove(tempPath)
+
+	if _, err := io.Copy(tempFile, requestFile); err != nil {
+		slog.Error("failed to copy request file to temporary path", "temp_path", tempPath, "request_file", header.Filename, "error", err)
+		http.Error(w, "failed to process cv", http.StatusBadRequest)
+		return
+	}
+
+	if err := tempFile.Close(); err != nil {
+		slog.Error("failed to close temporary file handle", "error", err)
+		http.Error(w, "failed to process cv", http.StatusBadRequest)
+		return
+	}
+
+	extractedText, err := h.cvService.ExtractPDFText(tempPath)
+	if err != nil {
+		slog.Error("failed to extract cv text", "error", err)
+		http.Error(w, "failed to process cv", http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(map[string]string{
+		"text": extractedText,
+	}); err != nil {
+		slog.Error("failed to encode cv repsonse", "error", err)
+		return
+	}
+	slog.Info("cv extract success", "chars", len(extractedText))
 }
