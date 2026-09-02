@@ -3,6 +3,7 @@ package cv
 import (
 	"bytes"
 	"fmt"
+	"jobfind/preprocessing"
 	"strings"
 
 	"github.com/ledongthuc/pdf"
@@ -19,12 +20,6 @@ func standardizeWhitespace(s string) string {
 	s = strings.ReplaceAll(s, "\n", "")
 
 	return strings.Join(strings.Fields(s), " ")
-}
-
-func normalizeText(s string) string {
-	s = strings.ToLower(s)
-
-	return s
 }
 
 func cleanupText(s string) string {
@@ -59,7 +54,7 @@ func (cvr *Reader) ReadPDF(filePath string) (string, error) {
 	content := buf.String()
 
 	content = cleanupText(content)
-	content = normalizeText(content)
+	content = preprocessing.Normalize(content)
 
 	return content, nil
 }
