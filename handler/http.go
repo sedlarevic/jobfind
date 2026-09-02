@@ -72,8 +72,8 @@ func (h *HTTPHandler) CrawlCompany(w http.ResponseWriter, r *http.Request) {
 	result, err := h.crawlService.CrawlCompany(r.Context(), company)
 
 	if err != nil {
+		// TODO: Error could also be that request is sent for company that doesn't exist. That should be logged.
 		slog.Error("company crawl failed", "error", err)
-
 		http.Error(w, "company crawl failed", http.StatusInternalServerError)
 		return
 	}
@@ -90,13 +90,12 @@ func (h *HTTPHandler) CrawlCompany(w http.ResponseWriter, r *http.Request) {
 
 func (h *HTTPHandler) ExtractCV(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, 10<<20) // 10 MB
-
 	// NOTE: REQUEST FILE
-	requestFile, header, err := r.FormFile("cv")
+	requestFile, _, err := r.FormFile("cv")
 
 	if err != nil {
 		slog.Error("failed to capture uploaded cv", "error", err)
-		http.Error(w, "failed to procses cv", http.StatusBadRequest)
+		http.Error(w, "failed to process cv", http.StatusBadRequest)
 		return
 	}
 	defer requestFile.Close()
@@ -106,26 +105,30 @@ func (h *HTTPHandler) ExtractCV(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		slog.Error("failed to create temporary file", "error", err)
-		http.Error(w, "failed to process cv", http.StatusBadRequest)
+		http.Error(w, "failed to process cv", http.StatusInternalServerError)
 		return
 	}
 
 	tempPath := tempFile.Name()
-	defer os.Remove(tempPath)
 
+	defer os.Remove(tempPath)
+	defer tempFile.Close()
+
+	// NOTE: COPYING REQUEST FILE TO TEMP PATH
 	if _, err := io.Copy(tempFile, requestFile); err != nil {
-		slog.Error("failed to copy request file to temporary path", "temp_path", tempPath, "request_file", header.Filename, "error", err)
-		http.Error(w, "failed to process cv", http.StatusBadRequest)
+		slog.Error("failed to copy request file to temporary path", "error", err)
+		http.Error(w, "failed to process cv", http.StatusInternalServerError)
 		return
 	}
 
 	if err := tempFile.Close(); err != nil {
 		slog.Error("failed to close temporary file handle", "error", err)
-		http.Error(w, "failed to process cv", http.StatusBadRequest)
+		http.Error(w, "failed to process cv", http.StatusInternalServerError)
 		return
 	}
 
-	extractedText, err := h.cvService.ExtractPDFText(tempPath)
+	// NOTE: EXTRACTING TEXT FROM PDF
+	extractedText, err := h.cvService.ExtractText(tempPath)
 	if err != nil {
 		slog.Error("failed to extract cv text", "error", err)
 		http.Error(w, "failed to process cv", http.StatusBadRequest)
@@ -137,7 +140,7 @@ func (h *HTTPHandler) ExtractCV(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(map[string]string{
 		"text": extractedText,
 	}); err != nil {
-		slog.Error("failed to encode cv repsonse", "error", err)
+		slog.Error("failed to encode cv response", "error", err)
 		return
 	}
 	slog.Info("cv extract success", "chars", len(extractedText))

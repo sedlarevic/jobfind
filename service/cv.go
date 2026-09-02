@@ -15,7 +15,7 @@ func NewCVService(cvReader *cv.Reader) *CVService {
 	}
 }
 
-func (cvs *CVService) ExtractPDFText(filePath string) (string, error) {
+func (cvs *CVService) ExtractText(filePath string) (string, error) {
 
 	result, err := cvs.cvReader.ReadPDF(filePath)
 

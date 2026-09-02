@@ -15,7 +15,6 @@ func NewCVReader() *Reader {
 }
 
 func (cvr *Reader) ReadPDF(filePath string) (string, error) {
-	pdf.DebugOn = true
 	f, r, err := pdf.Open(filePath)
 
 	if err != nil {
