@@ -3,6 +3,7 @@ package cv
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/ledongthuc/pdf"
 )
@@ -12,6 +13,27 @@ type Reader struct {
 
 func NewCVReader() *Reader {
 	return &Reader{}
+}
+
+func standardizeWhitespace(s string) string {
+
+	s = strings.ReplaceAll(s, "\n", "")
+	return strings.Join(strings.Fields(s), " ")
+}
+
+func normalizeText(s string) string {
+
+	s = strings.ToLower(s)
+
+	return s
+}
+
+func cleanupText(s string) string {
+	s = strings.ReplaceAll(s, "|", " ")
+	s = strings.ReplaceAll(s, "•", " ")
+	s = standardizeWhitespace(s)
+
+	return s
 }
 
 func (cvr *Reader) ReadPDF(filePath string) (string, error) {
@@ -36,6 +58,9 @@ func (cvr *Reader) ReadPDF(filePath string) (string, error) {
 	}
 
 	content := buf.String()
+
+	content = cleanupText(content)
+	content = normalizeText(content)
 
 	return content, nil
 }
