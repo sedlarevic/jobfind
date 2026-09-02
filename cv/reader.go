@@ -32,7 +32,10 @@ func (cvr *Reader) ReadPDF(filePath string) (string, error) {
 		return "", fmt.Errorf("pdf plain text translation fail: %w", err)
 	}
 
-	buf.ReadFrom(b)
+	if _, err := buf.ReadFrom(b); err != nil {
+		return "", fmt.Errorf("read extracted pdf text: %w", err)
+	}
+
 	content := buf.String()
 
 	return content, nil
