@@ -19,9 +19,36 @@ def extract_cv(path: str | None):
     return response.json()["text"]
 
 def main():
-    agent = new_recommender_agent()
     cv_path = os.environ.get("CV_PATH")
+
     extracted_cv = extract_cv(cv_path)
+    
+    if extracted_cv is None:
+        raise ValueError("CV_PATH env variable is not set")
+
+    agent = new_recommender_agent()
+
+    input_text = f"""
+    Recommend the five best available jobs for this candidate.
+
+    Candidate CV:
+    {extracted_cv}
+    """
+
+    candidate_note = os.environ.get("CANDIDATE_NOTE")
+    if candidate_note:
+        input_text += f"""
+
+        Candidate Note:
+        {candidate_note}
+        """
+
+    result = Runner.run_sync(
+            agent,
+            input_text
+            )
+
+    print(result.final_output)
 
 if __name__ == "__main__":
     main()
