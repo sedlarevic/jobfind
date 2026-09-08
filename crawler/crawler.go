@@ -81,7 +81,6 @@ func (c *Crawler) CrawlCompany(company string) (*CompanyCrawlResult, error) {
 		return &CompanyCrawlResult{}, fmt.Errorf("crawler for company %s not found", company)
 	}
 	jobs, err := crawlerFunc()
-
 	if err != nil {
 		return nil, err
 	}
