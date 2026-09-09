@@ -13,6 +13,7 @@ type JobPosting struct {
 	FirstSeen   time.Time `json:"firstSeen"`
 	LastSeen    time.Time `json:"lastSeen"`
 	Active      bool      `json:"active"`
+	// add embedding
 }
 
 func (jp *JobPosting) String() string {
