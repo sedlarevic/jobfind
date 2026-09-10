@@ -2,7 +2,8 @@ import os
 import requests
 from agents import Runner
 
-from jobfind_ai.agent.recommender import new_recommender_agent 
+from jobfind_ai.agent.recommender import new_recommender_agent
+from jobfind_ai.model.job_posting import JobPosting 
 
 
 def extract_cv(path: str | None):
@@ -67,5 +68,6 @@ def main():
         print(f"Reason: {recommendation.reason}")
         print(f"Strengths: {recommendation.main_strengths}")
         print(f"Gap: {recommendation.main_gap}")
+
 if __name__ == "__main__":
     main()
