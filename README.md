@@ -1,8 +1,11 @@
 # JobFind
 
 JobFind is an agentic job recommendation application that matches candidates with relevant job postings based on their CV, experience, and career preferences.
+
 The application combines a Go backend for job collection, CV extraction, persistence, and semantic search with a Python AI layer built using the OpenAI Agents SDK.
+
 Job postings are represented using embeddings and stored in PostgreSQL with pgvector. Semantic retrieval is used to identify relevant job candidates before an LLM-based recommendation agent evaluates them in more detail.
+
 After receiving recommendations, the user can select a job and receive tailored CV feedback for that specific position.
 
 ## Features
@@ -93,8 +96,11 @@ Up to five recommendations
 ```
 
 The recommendation agent creates a concise semantic search query based on relevant evidence from the candidate CV and optional career preferences.
+
 The query is converted into an embedding and compared with stored job embeddings using cosine distance in pgvector.
+
 The most relevant postings are then evaluated in detail using the full candidate CV.
+
 Semantic retrieval is therefore responsible for candidate retrieval, while the LLM agent performs the final reasoning and ranking.
 
 ## CV Tailoring Flow
@@ -127,7 +133,9 @@ Strengths + gaps + CV feedback
 ```
 
 The CV Tailor Agent compares the candidate CV with the selected job posting.
+
 The CV remains the source of truth for candidate skills, experience, education, projects, and achievements. The agent does not invent missing experience or technologies.
+
 Its purpose is to identify relevant evidence already present in the CV and suggest how that evidence could be presented more effectively for the selected role.
 
 ## Candidate Note
@@ -331,6 +339,7 @@ ai/scripts/embed_jobs.py
 ```
 
 Generates embeddings for job postings that do not yet have an embedding stored in PostgreSQL.
+
 These scripts are data-preparation utilities and are separate from the normal runtime recommendation flow.
 
 ## Current Status
