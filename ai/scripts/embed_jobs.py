@@ -1,9 +1,7 @@
 import os
 from openai import OpenAI
-import openai
 import psycopg
 from psycopg.rows import dict_row
-import requests
 
 from jobfind_ai.model.job_posting import JobPosting
 
@@ -38,7 +36,7 @@ def set_embedding(connection: psycopg.Connection, jobs: list[JobPosting]):
     with connection.cursor() as cur:
         for job in jobs:
             text = f"{job.title}\n{job.description}"
-            response = openai.embeddings.create(
+            response = client.embeddings.create(
                 input=text,
                 model="text-embedding-3-small",
                 encoding_format="float")

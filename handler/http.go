@@ -163,6 +163,13 @@ func (h *HTTPHandler) SearchJobs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jobs, err := h.jobPostingService.SearchJobs(r.Context(), searchRequest)
+
+	if err != nil {
+		slog.Error("search jobs request failed", "error", err)
+		http.Error(w, "failed to search jobs", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 
 	if err := json.NewEncoder(w).Encode(jobs); err != nil {

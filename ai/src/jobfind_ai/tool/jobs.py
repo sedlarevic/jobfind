@@ -1,4 +1,3 @@
-import random
 from agents import function_tool
 import requests
 from openai import OpenAI

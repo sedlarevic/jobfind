@@ -83,6 +83,7 @@ func (jps *JobPostingService) SearchJobs(ctx context.Context, jobSearchRequest m
 	if err != nil {
 		return nil, fmt.Errorf("search job postings: %w", err)
 	}
+
 	slog.Debug(
 		"job search success",
 		"jobs", len(jobs),

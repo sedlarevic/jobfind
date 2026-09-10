@@ -39,10 +39,7 @@ func main() {
 	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
-	if err != nil {
-		slog.Error("database initialization failed", "error", err)
-		os.Exit(1)
-	}
+
 	if err != nil {
 		slog.Error("database initialization failed", "error", err)
 		os.Exit(1)

@@ -101,7 +101,7 @@ func (pr *PostgresRepository) RefreshCompany(ctx context.Context, company string
 
 func (pr *PostgresRepository) GetAllActive(ctx context.Context) ([]model.JobPosting, error) {
 
-	rows, err := pr.pool.Query(ctx, "SELECT id, company_name, title, url, description, first_seen, last_seen, embedding, active FROM job_postings WHERE active = true;")
+	rows, err := pr.pool.Query(ctx, "SELECT id, company_name, title, url, description, first_seen, last_seen, active FROM job_postings WHERE active = true;")
 
 	if err != nil {
 		return nil, fmt.Errorf("query active job postings: %w", err)
@@ -122,7 +122,6 @@ func (pr *PostgresRepository) GetAllActive(ctx context.Context) ([]model.JobPost
 			&job.Description,
 			&job.FirstSeen,
 			&job.LastSeen,
-			&job.Embedding,
 			&job.Active,
 		); err != nil {
 			return nil, fmt.Errorf("scan active job posting: %w", err)
