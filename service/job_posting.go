@@ -90,3 +90,17 @@ func (jps *JobPostingService) SearchJobs(ctx context.Context, jobSearchRequest m
 	)
 	return jobs, nil
 }
+
+func (jps *JobPostingService) GetJobByID(ctx context.Context, id int64) (*model.JobPosting, error) {
+	job, err := jps.repository.GetJobByID(ctx, id)
+
+	if err != nil {
+		return nil, fmt.Errorf("get job by id: %w", err)
+	}
+
+	slog.Debug(
+		"get job by id success",
+	)
+
+	return job, nil
+}

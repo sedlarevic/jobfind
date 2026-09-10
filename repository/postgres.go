@@ -3,16 +3,18 @@ package repository
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/pgvector/pgvector-go"
 	"jobfind/model"
 	"log/slog"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/pgvector/pgvector-go"
 )
 
 type JobPostingRepository interface {
 	GetAllActive(ctx context.Context) ([]model.JobPosting, error)
 	RefreshCompany(ctx context.Context, company string, jobs []model.JobPosting, deactivateMissing bool) (*model.RefreshResult, error)
 	SearchJobs(ctx context.Context, embedding []float32, limit int32) ([]model.JobPosting, error)
+	GetJobByID(ctx context.Context, id int64) (*model.JobPosting, error)
 }
 
 type PostgresRepository struct {
@@ -185,4 +187,25 @@ func (pr *PostgresRepository) SearchJobs(ctx context.Context, embedding []float3
 	}
 
 	return jobs, nil
+}
+
+func (pr *PostgresRepository) GetJobByID(ctx context.Context, id int64) (*model.JobPosting, error) {
+
+	var job model.JobPosting
+
+	err := pr.pool.QueryRow(ctx, "SELECT id, company_name, title, url, description, first_seen, last_seen, active FROM job_postings WHERE id = $1;", id).Scan(
+		&job.ID,
+		&job.CompanyName,
+		&job.Title,
+		&job.URL,
+		&job.Description,
+		&job.FirstSeen,
+		&job.LastSeen,
+		&job.Active,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get job posting by id: %w", err)
+	}
+
+	return &job, nil
 }

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 type HTTPHandler struct {
@@ -178,4 +179,32 @@ func (h *HTTPHandler) SearchJobs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	slog.Info("search jobs request completed", "jobs", len(jobs))
+}
+
+func (h *HTTPHandler) GetJobByID(w http.ResponseWriter, r *http.Request) {
+
+	reqIDParam := r.PathValue("id")
+	id, err := strconv.ParseInt(reqIDParam, 10, 64)
+	if err != nil {
+		slog.Error("failed converting job id to int", "error", err)
+		http.Error(w, "error processing job id", http.StatusBadRequest)
+	}
+	result, err := h.jobPostingService.GetJobByID(r.Context(), id)
+
+	if err != nil {
+		// TODO: Error could also be that request is sent for company that doesn't exist. That should be logged.
+		slog.Error("acquiring job details by id failed", "error", err)
+		http.Error(w, "acquiring job details by id failed", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(result); err != nil {
+		slog.Error("failed to encode job posting", "error", err)
+		return
+	}
+
+	slog.Info("acquiring job details by id success")
+
 }
