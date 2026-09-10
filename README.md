@@ -1,11 +1,8 @@
 # JobFind
 
 JobFind is an agentic job recommendation application that matches candidates with relevant job postings based on their CV, experience, and career preferences.
-
 The application combines a Go backend for job collection, CV extraction, persistence, and semantic search with a Python AI layer built using the OpenAI Agents SDK.
-
 Job postings are represented using embeddings and stored in PostgreSQL with pgvector. Semantic retrieval is used to identify relevant job candidates before an LLM-based recommendation agent evaluates them in more detail.
-
 After receiving recommendations, the user can select a job and receive tailored CV feedback for that specific position.
 
 ## Features
@@ -19,19 +16,14 @@ After receiving recommendations, the user can select a job and receive tailored 
 - Performs semantic job retrieval using PostgreSQL and pgvector
 - Uses an AI agent to rank relevant jobs against a candidate CV
 - Supports an optional Candidate Note for career preferences
-- Provides structured job recommendations with:
-  - fit score
-  - explanation
-  - candidate strengths
-  - main gap
-  - original job posting link
+- Provides structured recommendations with fit scores, strengths, gaps, and job links
 - Allows the user to select a recommended position
 - Uses a second AI agent to analyze the CV against the selected job
 - Provides job-specific CV strengths, gaps, and tailoring feedback
 
 ## Architecture
 
-The project is divided into two main parts.
+The project consists of two main parts: a Go backend and a Python AI layer.
 
 ### Go Backend
 
@@ -45,7 +37,7 @@ handler/        HTTP handlers and routes
 model/          Backend data models
 ```
 
-The Go backend is responsible for collecting and storing job postings, extracting CV text, and exposing the data required by the AI layer.
+The Go backend is responsible for collecting and storing job postings, extracting CV text, and exposing the HTTP API used by the AI layer.
 
 ### Python AI Layer
 
@@ -61,9 +53,11 @@ ai/
     │   └── cv_tailor.py
     ├── model/
     └── tool/
+        ├── cv.py
+        └── jobs.py
 ```
 
-The Python layer contains the AI agents, their tools, and structured Pydantic output models.
+The Python layer contains the AI agents, tools, and structured Pydantic output models.
 
 ## Recommendation Flow
 
@@ -98,52 +92,61 @@ LLM evaluation and ranking
 Up to five recommendations
 ```
 
-Semantic retrieval is used as a first-stage retrieval mechanism.
-
-The recommendation agent creates a concise search query based on the candidate's CV and preferences. The query is converted into an embedding and compared with stored job embeddings using cosine distance in pgvector.
-
-The most relevant postings are then evaluated by the recommendation agent using the full candidate CV.
+The recommendation agent creates a concise semantic search query based on relevant evidence from the candidate CV and optional career preferences.
+The query is converted into an embedding and compared with stored job embeddings using cosine distance in pgvector.
+The most relevant postings are then evaluated in detail using the full candidate CV.
+Semantic retrieval is therefore responsible for candidate retrieval, while the LLM agent performs the final reasoning and ranking.
 
 ## CV Tailoring Flow
 
 After receiving recommendations, the user selects one position.
 
 ```text
-Selected recommendation
+Recommended jobs
   |
   v
-Job ID
+User selects one job
+  |
+  v
+Selected job ID
   |
   v
 CV Tailor Agent
   |
   v
-Get selected job posting
+get_job_by_id
   |
   v
-Compare job posting with CV
+Selected job posting
+  |
+  v
+CV-to-job analysis
   |
   v
 Strengths + gaps + CV feedback
 ```
 
-The CV Tailor Agent does not invent candidate experience or skills. The existing CV remains the source of truth.
-
-Its purpose is to identify relevant evidence already present in the CV and suggest how that evidence could be presented more effectively for the selected position.
+The CV Tailor Agent compares the candidate CV with the selected job posting.
+The CV remains the source of truth for candidate skills, experience, education, projects, and achievements. The agent does not invent missing experience or technologies.
+Its purpose is to identify relevant evidence already present in the CV and suggest how that evidence could be presented more effectively for the selected role.
 
 ## Candidate Note
 
-The application supports an optional Candidate Note.
+The application supports an optional Candidate Note representing career preferences and desired direction.
 
 Example:
 
 ```text
-I only want backend Go roles.
+I only want C# or Python jobs, or jobs from company Nordeus.
 ```
 
-The Candidate Note represents career preferences and desired direction.
+The Candidate Note can influence semantic retrieval and ranking, but it is never treated as evidence of candidate capability.
 
-It may influence retrieval and ranking, but it is never treated as evidence that the candidate possesses a particular skill or experience.
+## Example Output
+
+A complete example of the recommendation and CV tailoring flow is available here:
+
+[View example output](examples/example_output.md)
 
 ## Technology Stack
 
@@ -169,7 +172,7 @@ It may influence retrieval and ranking, but it is never treated as evidence that
 
 ## HTTP API
 
-### Refresh job postings
+### Refresh Job Postings
 
 ```http
 POST /jobs/refresh
@@ -177,7 +180,7 @@ POST /jobs/refresh
 
 Crawls registered company websites and synchronizes their job postings with the database.
 
-### Get active job postings
+### Get Active Job Postings
 
 ```http
 GET /jobs/active
@@ -185,17 +188,17 @@ GET /jobs/active
 
 Returns all currently active job postings.
 
-### Get job by ID
+### Get Job by ID
 
 ```http
 GET /jobs/{id}
 ```
 
-Returns one job posting by its database ID.
+Returns a single job posting by its database ID.
 
 This endpoint is used by the CV Tailor Agent after the user selects a recommendation.
 
-### Semantic job search
+### Semantic Job Search
 
 ```http
 POST /jobs/search
@@ -214,13 +217,13 @@ Example request:
 
 The backend performs cosine-distance search against stored job embeddings using pgvector.
 
-### Crawl a single company
+### Crawl a Single Company
 
 ```http
 GET /crawler/{company}
 ```
 
-Runs a registered company crawler without updating the database.
+Runs the crawler for one registered company without updating the database.
 
 Example:
 
@@ -228,7 +231,7 @@ Example:
 GET /crawler/nordeus
 ```
 
-### Extract CV text
+### Extract CV Text
 
 ```http
 POST /cv/extract
@@ -240,13 +243,13 @@ Accepts a PDF CV as multipart form data using the field:
 cv
 ```
 
-The uploaded PDF is temporarily stored, parsed, normalized, and returned as text.
+The uploaded file is temporarily stored, parsed, normalized, and returned as text.
 
 ## Database
 
 Job postings are stored in PostgreSQL.
 
-The pgvector extension is used to store OpenAI embedding vectors and perform semantic similarity search.
+The pgvector extension is used to store embedding vectors and perform semantic similarity search.
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -264,7 +267,7 @@ CREATE TABLE job_postings (
 );
 ```
 
-Embeddings are currently generated using `text-embedding-3-small`.
+Embeddings are generated using `text-embedding-3-small`.
 
 ## Running the Backend
 
@@ -311,21 +314,24 @@ The application recommends suitable jobs, allows the user to select one, and the
 
 ## Demo Data
 
-The project contains two utility scripts used to prepare job data for development and demonstration.
+The project contains utility scripts used to prepare job data for development and demonstration.
+
+### Lever Job Import
 
 ```text
 ai/scripts/seed_lever.py
 ```
 
-Imports public job postings from selected Lever career sites.
+Imports public job postings from selected Lever career sites into PostgreSQL.
+
+### Job Embeddings
 
 ```text
 ai/scripts/embed_jobs.py
 ```
 
 Generates embeddings for job postings that do not yet have an embedding stored in PostgreSQL.
-
-These scripts are data preparation utilities and are separate from the normal runtime recommendation flow.
+These scripts are data-preparation utilities and are separate from the normal runtime recommendation flow.
 
 ## Current Status
 
@@ -335,7 +341,7 @@ Implemented:
 - PostgreSQL persistence
 - job refresh and deactivation
 - PDF CV extraction
-- semantic job retrieval with embeddings and pgvector
+- semantic job retrieval using embeddings and pgvector
 - LLM-based job recommendation
 - Candidate Note preference handling
 - structured recommendation output
@@ -346,7 +352,8 @@ Implemented:
 Possible future improvements:
 
 - additional company crawlers
-- automatic embedding generation when new jobs are inserted
+- automatic embedding generation for newly added or updated jobs
 - scheduled job refresh
 - improved CLI or web interface
 - additional job metadata such as location and work mode
+- automated tests for semantic search and AI integration
