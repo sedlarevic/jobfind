@@ -76,3 +76,16 @@ func (jps *JobPostingService) GetAllActive(ctx context.Context) ([]model.JobPost
 
 	return jobs, nil
 }
+
+func (jps *JobPostingService) SearchJobs(ctx context.Context, jobSearchRequest model.JobSearchRequest) ([]model.JobPosting, error) {
+	jobs, err := jps.repository.SearchJobs(ctx, jobSearchRequest.Embedding, jobSearchRequest.Limit)
+
+	if err != nil {
+		return nil, fmt.Errorf("search job postings: %w", err)
+	}
+	slog.Debug(
+		"job search success",
+		"jobs", len(jobs),
+	)
+	return jobs, nil
+}

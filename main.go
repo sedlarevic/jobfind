@@ -11,7 +11,9 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	pgxvector "github.com/pgvector/pgvector-go/pgx"
 )
 
 func main() {
@@ -26,11 +28,21 @@ func main() {
 	ctx := context.Background()
 
 	// init db
-	pool, err := pgxpool.New(
-		ctx,
-		os.Getenv("DATABASE_URL"),
-	)
+	config, err := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
+	if err != nil {
+		slog.Error("database config failed", "error", err)
+		os.Exit(1)
+	}
 
+	config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		return pgxvector.RegisterTypes(ctx, conn)
+	}
+
+	pool, err := pgxpool.NewWithConfig(ctx, config)
+	if err != nil {
+		slog.Error("database initialization failed", "error", err)
+		os.Exit(1)
+	}
 	if err != nil {
 		slog.Error("database initialization failed", "error", err)
 		os.Exit(1)

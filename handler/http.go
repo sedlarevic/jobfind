@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"io"
+	"jobfind/model"
 	"jobfind/service"
 	"log/slog"
 	"net/http"
@@ -144,4 +145,30 @@ func (h *HTTPHandler) ExtractCV(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	slog.Info("cv extract success", "chars", len(extractedText))
+}
+
+func (h *HTTPHandler) SearchJobs(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	r.Body = http.MaxBytesReader(w, r.Body, 1048576) // 1MB limit
+
+	var searchRequest model.JobSearchRequest
+
+	err := json.NewDecoder(r.Body).Decode(&searchRequest)
+
+	if err != nil {
+		slog.Error("failed to decode job search request", "error", err)
+		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		return
+	}
+
+	jobs, err := h.jobPostingService.SearchJobs(r.Context(), searchRequest)
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(jobs); err != nil {
+		slog.Error("failed to encode search jobs response", "error", err)
+		return
+	}
+
+	slog.Info("search jobs request completed", "jobs", len(jobs))
 }

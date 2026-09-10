@@ -6,6 +6,8 @@ require (
 	github.com/gocolly/colly/v2 v2.3.0
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728
+	github.com/pgvector/pgvector-go v0.4.1
+	github.com/pgvector/pgvector-go/pgx v0.4.1
 )
 
 require (
@@ -25,9 +27,10 @@ require (
 	github.com/nlnwa/whatwg-url v0.6.2 // indirect
 	github.com/saintfish/chardet v0.0.0-20230101081208-5e3ef4b5456d // indirect
 	github.com/temoto/robotstxt v1.1.2 // indirect
+	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/net v0.47.0 // indirect
-	golang.org/x/sync v0.18.0 // indirect
-	golang.org/x/text v0.31.0 // indirect
+	golang.org/x/sync v0.19.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 )

@@ -1,31 +1,51 @@
 import random
 from agents import function_tool
 import requests
+from openai import OpenAI
+
+client = OpenAI()
 
 @function_tool
-def get_active_jobs() -> list[dict]:
-    """Retrieve all currently active job postings from the JobFind backend."""
-    print("TOOL: get_active_jobs tool called")
-    response = requests.get("http://localhost:8081/jobs/active", timeout = 10,)
-    response.raise_for_status()
+def search_jobs(query: str, limit: int = 50) -> list[dict]:
+    """
+    Search active job postings by semantic similarity.
 
-    jobs = response.json()
+    Args:
+        query: Description of the type of job that should be retrieved.
+        limit: Maximum number of job postings to return.
+    """
 
-    print("TOOL: received jobs:", len(jobs))
-    
-    random.shuffle(jobs)
+    print(f"TOOL: search_jobs called with query: {query}")
 
-    jobs = jobs[:100]
+    response = client.embeddings.create(
+        model="text-embedding-3-small",
+        input=query,
+        encoding_format="float",
+    )
 
-    print("TOOL: sending jobs to agent:", len(jobs))
+    embedding = response.data[0].embedding
+
+    search_response = requests.post(
+        "http://localhost:8081/jobs/search",
+        json={
+            "embedding": embedding,
+            "limit": limit,
+        },
+        timeout=20,
+    )
+
+    search_response.raise_for_status()
+
+    jobs = search_response.json()
+
+    print(f"TOOL: semantic search returned {len(jobs)} jobs")
 
     return [
         {
             "id": job["id"],
             "company": job["companyName"],
             "title": job["title"],
-            "description": job["description"][:3000],
+            "description": job["description"],
         }
         for job in jobs
     ]
-

@@ -3,15 +3,16 @@ package repository
 import (
 	"context"
 	"fmt"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/pgvector/pgvector-go"
 	"jobfind/model"
 	"log/slog"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type JobPostingRepository interface {
 	GetAllActive(ctx context.Context) ([]model.JobPosting, error)
 	RefreshCompany(ctx context.Context, company string, jobs []model.JobPosting, deactivateMissing bool) (*model.RefreshResult, error)
+	SearchJobs(ctx context.Context, embedding []float32, limit int32) ([]model.JobPosting, error)
 }
 
 type PostgresRepository struct {
@@ -100,7 +101,7 @@ func (pr *PostgresRepository) RefreshCompany(ctx context.Context, company string
 
 func (pr *PostgresRepository) GetAllActive(ctx context.Context) ([]model.JobPosting, error) {
 
-	rows, err := pr.pool.Query(ctx, "SELECT id, company_name, title, url, description, first_seen, last_seen, active FROM job_postings WHERE active = true;")
+	rows, err := pr.pool.Query(ctx, "SELECT id, company_name, title, url, description, first_seen, last_seen, embedding, active FROM job_postings WHERE active = true;")
 
 	if err != nil {
 		return nil, fmt.Errorf("query active job postings: %w", err)
@@ -121,6 +122,7 @@ func (pr *PostgresRepository) GetAllActive(ctx context.Context) ([]model.JobPost
 			&job.Description,
 			&job.FirstSeen,
 			&job.LastSeen,
+			&job.Embedding,
 			&job.Active,
 		); err != nil {
 			return nil, fmt.Errorf("scan active job posting: %w", err)
@@ -130,6 +132,57 @@ func (pr *PostgresRepository) GetAllActive(ctx context.Context) ([]model.JobPost
 
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate active job postings: %w", err)
+	}
+
+	return jobs, nil
+}
+
+func (pr *PostgresRepository) SearchJobs(ctx context.Context, embedding []float32, limit int32) ([]model.JobPosting, error) {
+	queryVector := pgvector.NewVector(embedding)
+
+	rows, err := pr.pool.Query(ctx, `
+	SELECT 
+		id,
+		company_name,
+		title,
+		url,
+		description,
+		first_seen,
+		last_seen,
+		active
+		
+		FROM job_postings
+		
+		WHERE active = true AND embedding IS NOT NULL
+		ORDER BY embedding <=> $1 LIMIT $2;`, queryVector, limit)
+	if err != nil {
+		return nil, fmt.Errorf("query search job postings: %w", err)
+	}
+
+	defer rows.Close()
+
+	var jobs []model.JobPosting
+
+	for rows.Next() {
+		var job model.JobPosting
+
+		if err := rows.Scan(
+			&job.ID,
+			&job.CompanyName,
+			&job.Title,
+			&job.URL,
+			&job.Description,
+			&job.FirstSeen,
+			&job.LastSeen,
+			&job.Active,
+		); err != nil {
+			return nil, fmt.Errorf("scan searched job postings: %w", err)
+		}
+		jobs = append(jobs, job)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate searched job postings: %w", err)
 	}
 
 	return jobs, nil
