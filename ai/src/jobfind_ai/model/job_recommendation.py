@@ -6,6 +6,7 @@ class JobRecommendation(BaseModel):
     company: str
     fit_score: int = Field(ge=0, le=100)
     reason: str
+    url: str
     main_strengths: list[str]
     main_gap: str | None = None
 

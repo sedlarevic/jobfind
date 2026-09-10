@@ -2,6 +2,7 @@
 from agents import Agent
 
 from jobfind_ai.model.cv_tailor_result import CVTailorResult
+from jobfind_ai.tool.jobs import get_job_by_id
 
 
 def new_cv_tailor_agent() -> Agent:
@@ -144,4 +145,6 @@ Return:
 
 Keep the feedback specific to the selected job.
 Avoid generic resume advice that would apply equally to every application.
-            """)
+            """,
+            tools=[get_job_by_id]
+            )

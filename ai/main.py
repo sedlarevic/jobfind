@@ -2,6 +2,7 @@ import os
 import requests
 from agents import Runner
 
+from jobfind_ai.agent.cv_tailor import new_cv_tailor_agent
 from jobfind_ai.agent.recommender import new_recommender_agent
 from jobfind_ai.model.job_posting import JobPosting 
 
@@ -20,18 +21,14 @@ def extract_cv(path: str | None):
     return response.json()["text"]
 
 def main():
-    print("1. main started")
     cv_path = os.environ.get("CV_PATH")
-    print("1. cv path:", cv_path)
 
     extracted_cv = extract_cv(cv_path)
-    print("3. CV extracted:", len(extracted_cv) if extracted_cv else None)
 
     if extracted_cv is None:
         raise ValueError("CV_PATH env variable is not set")
 
     agent = new_recommender_agent()
-    print("4. agent created")
 
     input_text = f"""
     Recommend the five best available jobs for this candidate.
@@ -48,26 +45,47 @@ def main():
         {candidate_note}
         """
 
-    print("5. starting agent")
-
     result = Runner.run_sync(
             agent,
             input_text
             )
 
-    print("6. agent finished")
-
     output = result.final_output
 
-    print(output)
-    print(output.model_dump_json(indent=2))
+    for i, recommendation in enumerate(output.recommendations, start=1):
+        print(f"\n{i}. {recommendation.title} @ {recommendation.company}")
+        print(f"Fit: {recommendation.fit_score}/100")
+        print(f"Why: {recommendation.reason}")
+        print(f"Strengths: {', '.join(recommendation.main_strengths)}")
+        print(f"Main gap: {recommendation.main_gap or 'None'}")
+        print(f"Job link: {recommendation.url}")
 
-    for recommendation in output.recommendations:
-        print(f"\n{recommendation.title} @ {recommendation.company}")
-        print(f"Fit: {recommendation.fit_score}")
-        print(f"Reason: {recommendation.reason}")
-        print(f"Strengths: {recommendation.main_strengths}")
-        print(f"Gap: {recommendation.main_gap}")
+    while True:
+        try:
+            choice = int(input("\nSelect a job: "))
 
+            if 1 <= choice <= len(output.recommendations):
+                break
+
+            print("Invalid selection.")
+        except ValueError:
+            print("Please enter a number.")
+
+    selected_recommendation = output.recommendations[choice - 1]
+    selected_job_id = selected_recommendation.job_id
+
+    input_text = f"""
+    Analyze this CV for job ID {selected_job_id}.
+
+    Candidate CV:
+    {extracted_cv}
+    """
+
+    tailor_agent = new_cv_tailor_agent()
+
+    result = Runner.run_sync(
+        tailor_agent,
+        input_text,
+    )
 if __name__ == "__main__":
     main()

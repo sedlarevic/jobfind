@@ -2,6 +2,8 @@ from agents import function_tool
 import requests
 from openai import OpenAI
 
+from jobfind_ai.model.job_posting import JobPosting
+
 client = OpenAI()
 
 @function_tool
@@ -45,6 +47,39 @@ def search_jobs(query: str, limit: int = 50) -> list[dict]:
             "company": job["companyName"],
             "title": job["title"],
             "description": job["description"],
+            "url": job["url"],
         }
         for job in jobs
     ]
+
+@function_tool
+def get_job_by_id(id: int) -> JobPosting:
+    """
+    Get job posting based on id.
+
+    Args:
+        id: job posting id
+    """
+
+    print(f"TOOL: get_job_by_id called with id: {id}")
+
+
+    search_response = requests.post(
+        f"http://localhost:8081/jobs/{id}",
+        timeout=20,
+    )
+
+    search_response.raise_for_status()
+
+    job = search_response.json()
+
+    print(f"TOOL: get_job_by_id returned a job: {job}")
+
+    return JobPosting(
+            id=job["id"],
+            company=job["companyName"],
+            title=job["title"],
+            description=job["description"],
+            url=job["url"],
+            active=job["active"]
+            )
