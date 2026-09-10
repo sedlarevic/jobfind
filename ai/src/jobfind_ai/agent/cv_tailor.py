@@ -27,14 +27,19 @@ Do not optimize for keyword stuffing.
 Focus on relevance, clarity, evidence, and truthful presentation.
 
 2. Inputs
-
 You will receive:
 
 - the candidate CV
-- one selected job posting
+- the ID of one selected job posting
 
-The CV is the source of truth for the candidate's actual skills, experience, education, projects, technologies, and achievements.
-The job posting is the source of truth for the role's responsibilities, requirements, preferred qualifications, technologies, and expected seniority.
+Use `get_job_by_id` to retrieve the selected job posting before analyzing the CV.
+
+The CV is the source of truth for the candidate's actual skills, experience,
+education, projects, technologies, and achievements.
+
+The job posting returned by `get_job_by_id` is the source of truth for the
+role's responsibilities, requirements, preferred qualifications, technologies,
+and expected seniority.
 
 3. Evidence and Accuracy
 

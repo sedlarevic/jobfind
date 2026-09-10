@@ -4,21 +4,9 @@ from agents import Runner
 
 from jobfind_ai.agent.cv_tailor import new_cv_tailor_agent
 from jobfind_ai.agent.recommender import new_recommender_agent
-from jobfind_ai.model.job_posting import JobPosting 
+from jobfind_ai.model.job_posting import JobPosting
+from jobfind_ai.tool.cv import extract_cv 
 
-
-def extract_cv(path: str | None):
-    if path is None:
-        return None
-
-    with open(path, "rb") as f:
-        response = requests.post(
-                "http://localhost:8081/cv/extract",
-                files={"cv": f},
-                )
-    response.raise_for_status()
-        
-    return response.json()["text"]
 
 def main():
     cv_path = os.environ.get("CV_PATH")
@@ -87,5 +75,19 @@ def main():
         tailor_agent,
         input_text,
     )
+    tailor_output = result.final_output
+
+    print("\nCV TAILORING RESULT")
+    print(f"\nStrengths:")
+    for strength in tailor_output.strengths:
+        print(f"- {strength}")
+
+    print(f"\nGaps:")
+    for gap in tailor_output.gaps:
+        print(f"- {gap}")
+
+    print(f"\nCV Feedback:")
+    print(tailor_output.cv_feedback)
+
 if __name__ == "__main__":
     main()

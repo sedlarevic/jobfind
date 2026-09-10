@@ -64,7 +64,7 @@ def get_job_by_id(id: int) -> JobPosting:
     print(f"TOOL: get_job_by_id called with id: {id}")
 
 
-    search_response = requests.post(
+    search_response = requests.get(
         f"http://localhost:8081/jobs/{id}",
         timeout=20,
     )
@@ -73,7 +73,7 @@ def get_job_by_id(id: int) -> JobPosting:
 
     job = search_response.json()
 
-    print(f"TOOL: get_job_by_id returned a job: {job}")
+    print(f"TOOL: get_job_by_id returned a job.")
 
     return JobPosting(
             id=job["id"],

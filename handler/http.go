@@ -188,6 +188,7 @@ func (h *HTTPHandler) GetJobByID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		slog.Error("failed converting job id to int", "error", err)
 		http.Error(w, "error processing job id", http.StatusBadRequest)
+		return
 	}
 	result, err := h.jobPostingService.GetJobByID(r.Context(), id)
 
