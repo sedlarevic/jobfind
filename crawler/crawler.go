@@ -27,6 +27,7 @@ func NewCrawler() *Crawler {
 		"NORDEUS": companies.CrawlNordeus,
 		// Add new companies and their functions
 	}
+
 	return c
 }
 
@@ -80,7 +81,9 @@ func (c *Crawler) CrawlCompany(company string) (*CompanyCrawlResult, error) {
 	if !ok {
 		return &CompanyCrawlResult{}, fmt.Errorf("crawler for company %s not found", company)
 	}
+
 	jobs, err := crawlerFunc()
+
 	if err != nil {
 		return nil, err
 	}
