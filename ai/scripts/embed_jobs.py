@@ -3,6 +3,7 @@ from openai import OpenAI
 import psycopg
 from psycopg.rows import dict_row
 
+from jobfind_ai.config.settings import EMBEDDING_MODEL
 from jobfind_ai.model.job_posting import JobPosting
 
 DATABASE_URL = os.environ["DATABASE_URL"]
@@ -38,7 +39,7 @@ def set_embedding(connection: psycopg.Connection, jobs: list[JobPosting]):
             text = f"{job.title}\n{job.description}"
             response = client.embeddings.create(
                 input=text,
-                model="text-embedding-3-small",
+                model=EMBEDDING_MODEL,
                 encoding_format="float")
 
             embedding = response.data[0].embedding
