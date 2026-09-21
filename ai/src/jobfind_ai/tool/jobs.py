@@ -16,15 +16,13 @@ def search_jobs(query: str, limit: int = 50) -> list[dict]:
         limit: Maximum number of job postings to return.
     """
 
-    print(f"TOOL: search_jobs called with query: {query}")
-
-    response = client.embeddings.create(
+    embedding_response = client.embeddings.create(
         model="text-embedding-3-small",
         input=query,
         encoding_format="float",
     )
 
-    embedding = response.data[0].embedding
+    embedding = embedding_response.data[0].embedding
 
     search_response = requests.post(
         "http://localhost:8081/jobs/search",
@@ -61,9 +59,6 @@ def get_job_by_id(id: int) -> JobPosting:
         id: job posting id
     """
 
-    print(f"TOOL: get_job_by_id called with id: {id}")
-
-
     search_response = requests.get(
         f"http://localhost:8081/jobs/{id}",
         timeout=20,
@@ -73,7 +68,7 @@ def get_job_by_id(id: int) -> JobPosting:
 
     job = search_response.json()
 
-    print(f"TOOL: get_job_by_id returned a job.")
+    print(f"TOOL: get_job_by_id returned a job. ID: {id}")
 
     return JobPosting(
             id=job["id"],

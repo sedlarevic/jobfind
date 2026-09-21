@@ -24,7 +24,8 @@ type Crawler struct {
 func NewCrawler() *Crawler {
 	c := &Crawler{}
 	c.companyRegistry = map[string]siteCrawlerFunc{
-		"NORDEUS": companies.CrawlNordeus,
+		"NORDEUS":                 companies.CrawlNordeus,
+		"SWISS_MARKETPLACE_GROUP": companies.CrawlSwissMarketplaceGroup,
 		// Add new companies and their functions
 	}
 

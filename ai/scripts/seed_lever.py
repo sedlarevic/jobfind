@@ -18,6 +18,7 @@ LEVER_SITES = {
     "SFEIR": "sfeir",
     "Supermove": "supermove",
 }
+
 def strip_html(value: str) -> str:
     return " ".join(
         re.sub(r"<[^>]+>", " ", value).split()
