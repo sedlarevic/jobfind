@@ -31,4 +31,23 @@ go.work.sum
 # .idea/
 # .vscode/
 
+# Local stuff
 .test_requests
+.local_scripts
+.asd.text
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python tooling/cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
