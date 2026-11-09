@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"jobfind/model"
+	"jobfind/resolver"
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/gocolly/colly/v2"
 )
@@ -41,12 +43,30 @@ func CrawlNordeus() ([]model.JobPosting, error) {
 		if e.Request.URL.String() == siteToVisit {
 			return
 		}
+		crawledText := strings.TrimSpace(e.ChildText(".text-content"))
+		title := strings.TrimSpace(e.ChildText("h1"))
+
+		// TODO: Handle errors!
+		category := resolver.RetrieveCategory(title, crawledText)
+		subCategory := resolver.RetrieveSubCategory(category, title, crawledText)
+		workingModel := resolver.RetrieveWorkingModel(title, crawledText)
+		experience := resolver.RetrieveExperience(title, crawledText)
 
 		job := model.JobPosting{
-			Title:       strings.TrimSpace(e.ChildText("h1")),
-			URL:         e.Request.URL.String(),
-			Description: strings.TrimSpace(e.ChildText(".text-content")),
-			CompanyName: "NORDEUS",
+			Title:        title,
+			CompanyName:  "NORDEUS",
+			Description:  crawledText,
+			URL:          e.Request.URL.String(),
+			FirstSeen:    time.Now(),
+			LastSeen:     time.Now(),
+			IsActive:     true,
+			Source:       model.SourceDirect,
+			Country:      "Serbia",
+			Category:     category,
+			SubCategory:  subCategory,
+			WorkingModel: workingModel,
+			Experience:   experience,
+			Location:     "Belgrade, Serbia",
 		}
 
 		jobPostings = append(jobPostings, job)
