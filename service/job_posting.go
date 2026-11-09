@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"jobfind/crawler"
 	"jobfind/model"
 	"jobfind/repository"
 	"log/slog"
@@ -19,7 +18,7 @@ func NewJobPostingService(repo repository.JobPostingRepository) *JobPostingServi
 	}
 }
 
-func (jps *JobPostingService) Refresh(ctx context.Context, perCompanyCrawlResult []crawler.CompanyCrawlResult) (*model.RefreshResult, error) {
+func (jps *JobPostingService) Refresh(ctx context.Context, perCompanyCrawlResult []model.CompanyCrawlResult) (*model.RefreshResult, error) {
 	finalResult := &model.RefreshResult{}
 
 	for _, result := range perCompanyCrawlResult {

@@ -31,7 +31,7 @@ func (cs *CrawlService) RefreshJobs(ctx context.Context) (*model.RefreshResult, 
 	return refreshResult, nil
 }
 
-func (cs *CrawlService) CrawlCompany(ctx context.Context, company string) (*crawler.CompanyCrawlResult, error) {
+func (cs *CrawlService) CrawlCompany(ctx context.Context, company string) (*model.CompanyCrawlResult, error) {
 	company = strings.ToUpper(company)
 
 	crawlResult, err := cs.crawler.CrawlCompany(company)
