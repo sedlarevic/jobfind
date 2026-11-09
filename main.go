@@ -54,7 +54,12 @@ func main() {
 	slog.Info("database connection established")
 
 	// init repository
-	repo := repository.NewPostgresRepository(pool)
+	repo, err := repository.NewPostgresRepository(ctx, pool)
+
+	if err != nil {
+		slog.Error("repository init failed", "error", err)
+		os.Exit(1)
+	}
 
 	// init services
 	jobPostingService := service.NewJobPostingService(repo)
