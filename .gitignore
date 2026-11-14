@@ -36,6 +36,7 @@ go.work.sum
 .local_scripts
 .asd.text
 .DS_Store
+jobfind
 
 # Python
 __pycache__/
