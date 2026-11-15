@@ -46,11 +46,16 @@ func CrawlNordeus() ([]model.JobPosting, error) {
 		crawledText := strings.TrimSpace(e.ChildText(".text-content"))
 		title := strings.TrimSpace(e.ChildText("h1"))
 
+		resolver, err := resolver.NewJobDataResolver()
+		if err != nil {
+			// TODO: DO SOMETHING
+		}
 		// TODO: Handle errors!
-		category := resolver.RetrieveCategory(title, crawledText)
-		subCategory := resolver.RetrieveSubCategory(category, title, crawledText)
-		workingModel := resolver.RetrieveWorkingModel(title, crawledText)
-		experience := resolver.RetrieveExperience(title, crawledText)
+		category, err := resolver.CategoryResolver.Resolve(title, crawledText)
+		subCategory, err := resolver.CategoryResolver.ResolveSubcategory(category, title, crawledText)
+		workingModel, err := resolver.WorkingModelResolver.Resolve(title, crawledText)
+		experience, err := resolver.ExperienceResolver.Resolve(title, crawledText)
+		source, err := resolver.SourceResolver.Resolve(siteToVisit)
 
 		job := model.JobPosting{
 			Title:        title,
@@ -60,7 +65,7 @@ func CrawlNordeus() ([]model.JobPosting, error) {
 			FirstSeen:    time.Now(),
 			LastSeen:     time.Now(),
 			IsActive:     true,
-			Source:       model.SourceDirect,
+			Source:       source,
 			Country:      "Serbia",
 			Category:     category,
 			SubCategory:  subCategory,
