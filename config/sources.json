@@ -1,0 +1,35 @@
+{
+  "fallback": "direct",
+  "sources": [
+    {
+      "slug": "ashby",
+      "keywords": [
+        "ashbyhq"
+      ]
+    },
+    {
+      "slug": "lever",
+      "keywords": [
+        "lever"
+      ]
+    },
+    {
+      "slug": "bamboohr",
+      "keywords": [
+        "bamboohr"
+      ]
+    },
+    {
+      "slug": "greenhouse",
+      "keywords": [
+        "greenhouse"
+      ]
+    },
+    {
+      "slug": "smart_recruiters",
+      "keywords": [
+        "smartrecruiters"
+      ]
+    }
+  ]
+}

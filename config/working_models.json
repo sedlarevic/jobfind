@@ -1,0 +1,31 @@
+{
+  "fallback": "hybrid",
+  "working_models": [
+    {
+      "slug": "hybrid",
+      "keywords": [
+        "\\bhybrid\\b",
+        "hybrid model",
+        "hybrid work",
+        "hybrid working"
+      ]
+    },
+    {
+      "slug": "remote",
+      "keywords": [
+        "\\bremote\\b",
+        "remote work",
+        "work remotely",
+        "fully remote"
+      ]
+    },
+    {
+      "slug": "on_site",
+      "keywords": [
+        "on[- ]?site",
+        "in[- ]?office",
+        "office[- ]based"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,397 @@
+{
+  "fallback": "unknown",
+  "categories": [
+    {
+      "slug": "software_engineering",
+      "keywords": [
+        "software engineer",
+        "software developer",
+        "backend",
+        "frontend",
+        "full[- ]?stack"
+      ],
+      "subcategories": [
+        {
+          "slug": "backend",
+          "keywords": [
+            "back[- ]?end",
+            "server[- ]?side",
+            "api developer",
+            "api engineer"
+          ]
+        },
+        {
+          "slug": "frontend",
+          "keywords": [
+            "front[- ]?end",
+            "ui developer",
+            "web developer"
+          ]
+        },
+        {
+          "slug": "fullstack",
+          "keywords": [
+            "full[- ]?stack"
+          ]
+        },
+        {
+          "slug": "devops",
+          "keywords": [
+            "devops",
+            "site reliability",
+            "\bsre\b",
+            "platform engineer",
+            "infrastructure engineer",
+            "cloud engineer"
+          ]
+        },
+        {
+          "slug": "mobile",
+          "keywords": [
+            "mobile developer",
+            "mobile engineer",
+            "android developer",
+            "android engineer",
+            "ios developer",
+            "ios engineer",
+            "flutter developer",
+            "react native"
+          ]
+        },
+        {
+          "slug": "qa",
+          "keywords": [
+            "quality assurance",
+            "qa engineer",
+            "qa developer",
+            "test engineer",
+            "software tester",
+            "test automation",
+            "automation engineer"
+          ]
+        },
+        {
+          "slug": "security",
+          "keywords": [
+            "security engineer",
+            "cyber ?security",
+            "application security",
+            "\bappsec\b",
+            "security analyst",
+            "penetration tester",
+            "pentester"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "data",
+      "keywords": [
+        "data analyst",
+        "data scientist",
+        "data engineer"
+      ],
+      "subcategories": [
+        {
+          "slug": "data_science",
+          "keywords": [
+            "data scientist",
+            "data science",
+            "statistical modeling",
+            "predictive modeling"
+          ]
+        },
+        {
+          "slug": "data_analysis",
+          "keywords": [
+            "data analyst",
+            "data analytics",
+            "business intelligence analyst",
+            "\bbi analyst\b",
+            "analytics specialist"
+          ]
+        },
+        {
+          "slug": "data_engineering",
+          "keywords": [
+            "data engineer",
+            "data engineering",
+            "etl engineer",
+            "data pipeline",
+            "data platform engineer"
+          ]
+        },
+        {
+          "slug": "database_administration",
+          "keywords": [
+            "database administrator",
+            "database administration",
+            "\bdba\b",
+            "database engineer"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "ai",
+      "keywords": [
+        "machine learning",
+        "ml engineer",
+        "ai engineer",
+        "artificial intelligence"
+      ],
+      "subcategories": [
+        {
+          "slug": "ai_engineering",
+          "keywords": [
+            "ai engineer",
+            "ai engineering",
+            "artificial intelligence engineer",
+            "applied ai engineer",
+            "generative ai engineer",
+            "genai engineer",
+            "llm engineer"
+          ]
+        },
+        {
+          "slug": "ml_engineering",
+          "keywords": [
+            "machine learning engineer",
+            "ml engineer",
+            "machine learning engineering",
+            "mlops engineer"
+          ]
+        },
+        {
+          "slug": "computer_vision",
+          "keywords": [
+            "computer vision",
+            "computer vision engineer",
+            "vision engineer",
+            "image recognition",
+            "image processing"
+          ]
+        },
+        {
+          "slug": "ai_research",
+          "keywords": [
+            "ai researcher",
+            "ai research",
+            "machine learning researcher",
+            "ml researcher",
+            "research scientist",
+            "research engineer"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "marketing",
+      "keywords": [
+        "marketing",
+        "\bseo\b",
+        "copywriter",
+        "social media"
+      ],
+      "subcategories": [
+        {
+          "slug": "market_analysis",
+          "keywords": [
+            "market analyst",
+            "market analysis",
+            "market research",
+            "marketing analyst",
+            "marketing analytics"
+          ]
+        },
+        {
+          "slug": "seo",
+          "keywords": [
+            "\bseo\b",
+            "search engine optimization",
+            "seo specialist",
+            "seo manager"
+          ]
+        },
+        {
+          "slug": "copywriting",
+          "keywords": [
+            "copywriter",
+            "copywriting",
+            "content writer",
+            "content writing"
+          ]
+        },
+        {
+          "slug": "social_media_management",
+          "keywords": [
+            "social media",
+            "social media manager",
+            "social media specialist",
+            "community manager"
+          ]
+        },
+        {
+          "slug": "brand_management",
+          "keywords": [
+            "brand manager",
+            "brand management",
+            "brand strategist",
+            "branding manager"
+          ]
+        },
+        {
+          "slug": "marketing_operations",
+          "keywords": [
+            "marketing operations",
+            "marketing ops",
+            "marketing automation",
+            "marketing operations manager"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "management",
+      "keywords": [
+        "product manager",
+        "project manager",
+        "engineering manager",
+        "scrum master",
+        "program manager",
+        "producer"
+      ],
+      "subcategories": [
+        {
+          "slug": "software_management",
+          "keywords": [
+            "engineering manager",
+            "software engineering manager",
+            "development manager",
+            "software development manager",
+            "technical manager"
+          ]
+        },
+        {
+          "slug": "data_management",
+          "keywords": [
+            "data manager",
+            "data management",
+            "head of data",
+            "director of data"
+          ]
+        },
+        {
+          "slug": "project_management",
+          "keywords": [
+            "project manager",
+            "project management",
+            "technical project manager",
+            "program manager",
+            "producer"
+          ]
+        },
+        {
+          "slug": "product_management",
+          "keywords": [
+            "product manager",
+            "product management",
+            "technical product manager",
+            "product owner"
+          ]
+        },
+        {
+          "slug": "c_suite",
+          "keywords": [
+            "chief executive officer",
+            "\bceo\b",
+            "chief technology officer",
+            "\bcto\b",
+            "chief operating officer",
+            "\bcoo\b",
+            "chief product officer",
+            "\bcpo\b",
+            "chief marketing officer",
+            "\bcmo\b"
+          ]
+        },
+        {
+          "slug": "operations_management",
+          "keywords": [
+            "operations manager",
+            "operations management",
+            "business operations manager",
+            "head of operations"
+          ]
+        },
+        {
+          "slug": "scrum_master",
+          "keywords": [
+            "scrum master",
+            "agile coach"
+          ]
+        },
+        {
+          "slug": "sales_management",
+          "keywords": [
+            "sales manager",
+            "sales management",
+            "sales director",
+            "head of sales",
+            "regional sales manager"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "design",
+      "keywords": [
+        "designer",
+        "design",
+        "\bux\b",
+        "\bui\b"
+      ],
+      "subcategories": [
+        {
+          "slug": "ux_design",
+          "keywords": [
+            "ux designer",
+            "user experience designer",
+            "experience designer"
+          ]
+        },
+        {
+          "slug": "ui_design",
+          "keywords": [
+            "ui designer",
+            "user interface designer"
+          ]
+        },
+        {
+          "slug": "product_design",
+          "keywords": [
+            "product designer",
+            "product design"
+          ]
+        },
+        {
+          "slug": "graphic_design",
+          "keywords": [
+            "graphic designer",
+            "graphic design",
+            "visual designer"
+          ]
+        },
+        {
+          "slug": "ux_research",
+          "keywords": [
+            "ux researcher",
+            "user experience researcher",
+            "user researcher",
+            "ux research"
+          ]
+        }
+      ]
+    }
+  ]
+}
