@@ -63,7 +63,13 @@ func main() {
 
 	// init services
 	jobPostingService := service.NewJobPostingService(repo)
-	crawlService := service.NewCrawlService(crawler.NewCrawler(), jobPostingService)
+
+	crawler, err := crawler.NewCrawler()
+	if err != nil {
+		slog.Error("crawler init failed", "error", err)
+		os.Exit(1)
+	}
+	crawlService := service.NewCrawlService(crawler, jobPostingService)
 	cvService := service.NewCVService(cv.NewCVReader())
 
 	// init handler
