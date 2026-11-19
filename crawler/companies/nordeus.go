@@ -4,18 +4,15 @@ import (
 	"errors"
 	"fmt"
 	"jobfind/model"
-	"jobfind/resolver"
 	"log/slog"
 	"strings"
-	"time"
 
 	"github.com/gocolly/colly/v2"
 )
 
-func CrawlNordeus() ([]model.JobPosting, error) {
-	var jobPostings []model.JobPosting
-	var siteToVisit = "https://nordeus.com/open-positions/"
+func CrawlNordeus(url string) ([]model.CrawledJob, error) {
 	var errs []error
+	var crawledJobs []model.CrawledJob
 
 	collector := colly.NewCollector(
 		colly.AllowedDomains("www.nordeus.com", "nordeus.com"),
@@ -27,7 +24,7 @@ func CrawlNordeus() ([]model.JobPosting, error) {
 		link := e.Attr("href")
 		absoluteURL := e.Request.AbsoluteURL(link)
 
-		if !strings.Contains(absoluteURL, "/open-positions") || strings.Contains(absoluteURL, "/early_talent_program") || absoluteURL == siteToVisit {
+		if !strings.Contains(absoluteURL, "/open-positions") || strings.Contains(absoluteURL, "/early_talent_program") || absoluteURL == url {
 			return
 		}
 
@@ -40,43 +37,29 @@ func CrawlNordeus() ([]model.JobPosting, error) {
 
 	// on jobposting page event
 	collector.OnHTML(".main", func(e *colly.HTMLElement) {
-		if e.Request.URL.String() == siteToVisit {
+		if e.Request.URL.String() == url {
 			return
 		}
+
 		crawledText := strings.TrimSpace(e.ChildText(".text-content"))
 		title := strings.TrimSpace(e.ChildText("h1"))
 
-		resolver, err := resolver.NewJobDataResolver()
-		if err != nil {
-			// TODO: DO SOMETHING
-		}
-		// TODO: Handle errors!
-		category, err := resolver.CategoryResolver.Resolve(title, crawledText)
-		subCategory, err := resolver.CategoryResolver.ResolveSubcategory(category, title, crawledText)
-		workingModel, err := resolver.WorkingModelResolver.Resolve(title, crawledText)
-		experience, err := resolver.ExperienceResolver.Resolve(title, crawledText)
-		source, err := resolver.SourceResolver.Resolve(siteToVisit)
-
-		job := model.JobPosting{
-			Title:        title,
-			CompanyName:  "NORDEUS",
-			Description:  crawledText,
-			URL:          e.Request.URL.String(),
-			FirstSeen:    time.Now(),
-			LastSeen:     time.Now(),
-			IsActive:     true,
-			Source:       source,
-			Country:      "Serbia",
-			Category:     category,
-			SubCategory:  subCategory,
-			WorkingModel: workingModel,
-			Experience:   experience,
-			Location:     "Belgrade, Serbia",
+		if title == "" || crawledText == "" {
+			return
 		}
 
-		jobPostings = append(jobPostings, job)
+		curURL := e.Request.URL.String()
+		crawledJob := model.CrawledJob{
+			Title:       title,
+			Description: crawledText,
+			URL:         curURL,
+			Country:     "Serbia",
+			Location:    "Belgrade",
+		}
 
-		slog.Debug("job page crawled", "url", job.URL)
+		crawledJobs = append(crawledJobs, crawledJob)
+
+		slog.Debug("job page crawled", "url", curURL)
 	})
 
 	collector.OnRequest(func(r *colly.Request) {
@@ -91,11 +74,11 @@ func CrawlNordeus() ([]model.JobPosting, error) {
 		slog.Warn("request failed", "url", r.Request.URL.String(), "failed", err)
 	})
 
-	err := collector.Visit(siteToVisit)
+	err := collector.Visit(url)
 
 	if err != nil {
 		errs = append(errs, err)
 	}
 
-	return jobPostings, errors.Join(errs...)
+	return crawledJobs, errors.Join(errs...)
 }
